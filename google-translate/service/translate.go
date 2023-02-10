@@ -33,11 +33,11 @@ func unmarshalResponse(b []byte) string {
 	}
 	data, ok := resp.([]any)
 	if !ok {
-		return fmt.Sprintf("Error type assert level 0: %T: '%v'", resp, resp)
+		return fmt.Sprintf("Error unmarshalling level 0: %T: '%v'", resp, resp)
 	}
 	for i := 0; i < 2; i++ {
 		if data, ok = data[0].([]any); !ok {
-			return fmt.Sprintf("Error type assert level %v: %T: '%v'", i, data[0], data[0])
+			return fmt.Sprintf("Error unmarshalling level %v: %T: '%v'", i, data[0], data[0])
 		}
 	}
 	s, ok := data[0].(string)
