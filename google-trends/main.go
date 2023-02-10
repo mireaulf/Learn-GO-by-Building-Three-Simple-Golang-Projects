@@ -16,6 +16,7 @@ func main() {
 	}
 	fmt.Printf("fetching google trends (region:%s)\n", region)
 	rss := readGoogleTrends(region)
+
 	fmt.Printf("TRENDS:\n%s", rss)
 }
 
