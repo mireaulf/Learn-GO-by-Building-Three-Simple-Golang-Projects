@@ -11,6 +11,8 @@ import (
 
 const TranslateUrl = "https://translate.googleapis.com/translate_a/single"
 
+type TranslatorService struct{}
+
 func buildQuery(req *domain.Request) (*http.Request, error) {
 	httpReq, err := http.NewRequest("GET", TranslateUrl, nil)
 	if err != nil {
@@ -47,7 +49,7 @@ func unmarshalResponse(b []byte) string {
 	return s
 }
 
-func Translate(req *domain.Request, wg *sync.WaitGroup, ch chan *domain.Request) {
+func (*TranslatorService) Translate(req *domain.Request, wg *sync.WaitGroup, ch chan *domain.Request) {
 	wg.Add(1)
 	defer wg.Done()
 	httpReq, err := buildQuery(req)
