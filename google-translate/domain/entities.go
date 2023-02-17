@@ -4,4 +4,5 @@ type Request struct {
 	SrcLang string
 	TgtLang string
 	SrcText string
+	TgtText string
 }

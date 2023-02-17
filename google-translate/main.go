@@ -9,6 +9,22 @@ import (
 	"sync"
 )
 
+func produce(requests []domain.Request, wg *sync.WaitGroup, ch *chan *domain.Request) {
+	for i := range requests {
+		req := requests[i]
+		go service.Translate(&req, wg, *ch)
+		fmt.Println(fmt.Sprintf("SENT [%v]->[%v] '%v' ", req.SrcLang, req.TgtLang, req.SrcText))
+	}
+	wg.Done()
+}
+
+func consume(wg *sync.WaitGroup, ch *chan *domain.Request) {
+	for resp := range *ch {
+		fmt.Println(fmt.Sprintf("RECEIVED [%v]->[%v] '%v': '%v'", resp.SrcLang, resp.TgtLang, resp.SrcText, resp.TgtText))
+	}
+	wg.Done()
+}
+
 func main() {
 	var srcLang string
 	var targetsStr string
@@ -34,15 +50,18 @@ func main() {
 		})
 	}
 
-	ch := make(chan string)
-	wg := sync.WaitGroup{}
-	for _, req := range requests {
-		go service.Translate(&req, &wg, ch)
-		select {
-		case text := <-ch:
-			fmt.Println(fmt.Sprintf("[%v]->[%v] '%v' : %v", req.SrcLang, req.TgtLang, req.SrcText, text))
-		}
-	}
-	wg.Wait()
+	ch := make(chan *domain.Request)
+
+	wgConsume := sync.WaitGroup{}
+	wgConsume.Add(1)
+	go consume(&wgConsume, &ch)
+
+	wgProduce := sync.WaitGroup{}
+	wgProduce.Add(1)
+	go produce(requests, &wgProduce, &ch)
+	wgProduce.Wait()
+
 	close(ch)
+
+	wgConsume.Wait()
 }

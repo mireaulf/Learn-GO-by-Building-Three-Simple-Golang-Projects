@@ -47,29 +47,33 @@ func unmarshalResponse(b []byte) string {
 	return s
 }
 
-func Translate(req *domain.Request, wg *sync.WaitGroup, ch chan string) {
+func Translate(req *domain.Request, wg *sync.WaitGroup, ch chan *domain.Request) {
 	wg.Add(1)
 	defer wg.Done()
-
 	httpReq, err := buildQuery(req)
 	if err != nil {
-		ch <- fmt.Sprintf("Error building new request: %v", err)
+		req.TgtText = fmt.Sprintf("Error building new request: %v", err)
+		ch <- req
 		return
 	}
 	httpResp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		ch <- fmt.Sprintf("Error making request: %v", err)
+		req.TgtText = fmt.Sprintf("Error making request: %v", err)
+		ch <- req
 		return
 	}
 	defer httpResp.Body.Close()
 	if httpResp.StatusCode != http.StatusOK {
-		ch <- fmt.Sprintf("Request failed with code %v", httpResp.StatusCode)
+		req.TgtText = fmt.Sprintf("Request failed with code %v", httpResp.StatusCode)
+		ch <- req
 		return
 	}
 	b, err := ioutil.ReadAll(httpResp.Body)
 	if err != nil {
-		ch <- fmt.Sprintf("Error reading body %v", err)
+		req.TgtText = fmt.Sprintf("Error reading body %v", err)
+		ch <- req
 		return
 	}
-	ch <- unmarshalResponse(b)
+	req.TgtText = unmarshalResponse(b)
+	ch <- req
 }
